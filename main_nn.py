@@ -1,44 +1,49 @@
-from FFNetwork import FFNetwork
+from algorithms.FFNetwork import FFNetwork
+
 import numpy as np
 
-def preprocess_data(data):
+
+def y_maps(n):
+    res = np.zeros((10, 1))
+    res[n][0] = 1
+    return res
+
+# utility function
+
+
+def preprocess_data(trainX, trainY):
     processed = []
-    for x, y in data:
-        vec_x = np.asarray(x).reshape(len(x), 1)
-        vec_y = np.asarray(y).reshape(len(y), 1)
-        processed.append((vec_x, vec_y))
+    for x, y in zip(trainX, trainY):
+        flat_x = x.flatten() / 255.0
+        processed.append((flat_x.reshape(flat_x.shape[0], 1), y_maps(y)))
     return processed
 
 
 def main():
-    # XOR data
-    raw_data = [
-        ([0, 0], [1, 0]),
-        ([0, 1], [0, 1]),
-        ([1, 0], [0, 1]),
-        ([1, 1], [1, 0]),
+    trainX = testX = trainY = testY = None
+    with np.load('datasets/mnist.npz') as data:
+        lst = data.files
+        trainX = data[lst[1]]
+        trainY = data[lst[2]]
 
-        ([0, 0], [1, 0]),
-        ([0, 1], [0, 1]),
-        ([1, 0], [0, 1]),
-        ([1, 1], [1, 0]),
+        testX = data[lst[0]]
+        testY = data[lst[3]]
 
-        ([0, 0], [1, 0]),
-        ([0, 1], [0, 1]),
-        ([1, 0], [0, 1]),
-        ([1, 1], [1, 0]),
-    ]
-    train_data = preprocess_data(raw_data)
+    train_data = preprocess_data(trainX, trainY)
+    test_data = preprocess_data(testX, testY)
 
-    network = FFNetwork([2, 3, 2])
+    p, q = train_data[0][0].shape, train_data[0][1].shape
+    print(len(train_data))
+    print(p, q)
 
-    # If it doesn't fit properly then it just means that it found a local minima
-    
-    network.fit_sgd(train_data, 0.1, 3, 5000)
-    # network.fit_bgd(train_data, 0.1, 1000)
+    network = FFNetwork([p[0], 30, q[0]])
+    network.fit_sgd(train_data, 3.0, 10, 30)
 
-    for x, y in train_data:
-        res = network.feed_forward(x)
-        print('______________________')
-        print(f'{x.T} => {res.T} || {y.T}')
-        print('______________________\n\n')
+    correct = network.evaluate(test_data)
+    print(f'Correct: {correct}%')
+
+    FFNetwork.save(network, 'handwritten_digits_01.json')
+
+
+if __name__ == '__main__':
+    main()
