@@ -1,4 +1,4 @@
-import predicters as pred
+from . import predicters as pred
 import numpy as np
 
 class LogisticRegression(pred.Predicters):

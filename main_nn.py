@@ -8,7 +8,7 @@ def y_maps(n):
     res[n][0] = 1
     return res
 
-# utility function
+# utility functions for data pre-processing
 
 
 def preprocess_data(trainX, trainY):
@@ -36,13 +36,14 @@ def main():
     print(len(train_data))
     print(p, q)
 
-    network = FFNetwork([p[0], 30, q[0]])
-    network.fit_sgd(train_data, 3.0, 10, 30)
+    # It is very slow to train this on the CPU.
+    network = FFNetwork([p[0], 100, q[0]], ['sigmoid', 'sigmoid'])
+    network.fit_sgd(train_data, 0.5, 10, 30)
 
     correct = network.evaluate(test_data)
     print(f'Correct: {correct}%')
 
-    FFNetwork.save(network, 'handwritten_digits_01.json')
+    FFNetwork.save(network, 'learned weights/handwritten_digits_02.json')
 
 
 if __name__ == '__main__':
